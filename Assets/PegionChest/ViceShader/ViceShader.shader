@@ -1,5 +1,7 @@
 ﻿Shader "PegionChest/ViceShader"
 {
+	Properties { _MainTex ("Texture", 2D) = "white" {} }
+
 	SubShader
 	{
 		Tags
@@ -42,14 +44,40 @@
 			}
 
 			#include "ViceFunc.cginc"
+			sampler2D _MainTex;
+            float4 _MainTex_ST;
 
 			float4 vice(float3 cameraPos, float3 rayDir, float4 screenPos)
 			{
 				float4 c = float4(1, 0, 0, 1);
 				float2 st = screenPos.xy/screenPos.w;
-				return osc(st,75,0.05,0);
+				//return osc(st,75,0.05,0);
 				//return mult(osc(rotate(st, 0.5, 0),100,0.05,0),shape(repeat(st, 20, 16, 0, 0),12,0.1,0),1);
 				//return shape(st,12,0.1,0.5);
+				float4 o0 = tex2D(_MainTex,st);
+				float st2 = modulate(
+					rotate(st,-0.5, -0.5),
+					shape(
+						repeatY(
+							modulate(
+								repeatX(
+									scale(
+										rotate(st,0.5, 0.5),
+										1,1,1,0,0
+									),
+									2,2
+								),
+								o0, 0.5
+							),
+							2, 2
+						),
+						4,0.75,0
+					),
+					0.5
+				);
+				o0 = tex2D(_MainTex,st2);
+				return blend(color(osc(st2,8,-0.5, 1),-1.5, -1.5, -1.5,1.0),o0,0.75);
+				//return osc(st2,8,-0.5,1);
 				/*
 				return
 					mult(
