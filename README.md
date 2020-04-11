@@ -1,8 +1,11 @@
 # UnityViceShader
 VJ Shader for Unity(Unity2018.4.17f1)
 
+# Setup Light Settings
+Change the Skybox material in Lighting Preferences to ViceSkybox 
+
 # Edit Shader
-ViceShader.shader
+Implement the code for the "vice" function in ViceShader.shader
 
 ## simple oscillator
 ```
