@@ -228,7 +228,7 @@ float2 kaleid(float2 st, float nSides){
 	float pi = 2.*3.1416;
 	a = abs(fmod(a,pi/nSides));
 	a = abs(a-pi/nSides/2.);
-	return r*float2(cos(a), sin(a));
+	return r*float2(-cos(a), sin(a));
 }
 
 float2 modulateKaleid(float2 st, float4 c1, float nSides){
@@ -238,7 +238,7 @@ float2 modulateKaleid(float2 st, float4 c1, float nSides){
 	float pi = 2.*3.1416;
 	a = abs(fmod(a,pi/nSides));
 	a = abs(a-pi/nSides/2.);
-	return (c1.r+r)*float2(cos(a), sin(a));
+	return (c1.r+r)*float2(-cos(a), sin(a));
 }
 
 float2 scrollX(float2 st, float amount, float speed){
@@ -282,6 +282,7 @@ float4 diff(float4 c0, float4 c1){
 }
 
 float2 modulate(float2 st, float4 c1, float amount){
+//  return frac(st+(c1.xy-0.5)*amount);
 	return st + c1.xy*amount;
 }
 
