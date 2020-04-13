@@ -1,5 +1,5 @@
 # UnityViceShader
-VJ Shader for Unity(Unity2018.4.17f1)
+VJ Shader for Unity(Unity2018.4.21f1)
 
 # Setup Light Settings
 Change the Skybox material in Lighting Preferences to ViceSkybox 
