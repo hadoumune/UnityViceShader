@@ -130,6 +130,18 @@ float4 shape(float2 _st, float sides, float radius, float smoothing){
 	return float4(s,s,s, 1.0);
 }
 
+float4 edge(float2 _st, float sides, float radius,float width,float smoothing){
+	float2 st = _st * 2. - 1.;
+	// Angle and radius from the current pixel
+	float a = atan2(st.x,st.y)+3.1416;
+	float r = (2.*3.1416)/sides;
+	float d = cos(floor(.5+a/r)*r-a)*length(st);
+    float s = 1.0-smoothstep(radius,radius + smoothing,d);
+    float s2 = 1.0-smoothstep(radius-width*0.5-smoothing,radius + width*0.5,d);
+	s = s-s2;
+	return float4(s,s,s, 1.0);
+}
+
 float4 gradient(float2 _st, float speed) {
 	return float4(_st, sin(_Time.y*speed), 1.0);
 }
