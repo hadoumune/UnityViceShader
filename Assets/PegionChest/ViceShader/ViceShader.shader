@@ -47,7 +47,7 @@
 			sampler2D _MainTex;
             float4 _MainTex_ST;
 
-			float4 vice(float3 cameraPos, float3 rayDir, float4 screenPos, float4 st)
+			float4 vice(float3 cameraPos, float3 rayDir, float4 screenPos, float2 st)
 			{
 				float4 c = float4(1, 0, 0, 1);
 				//return osc(st,75,0.05,0);
