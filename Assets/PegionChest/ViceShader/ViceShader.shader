@@ -53,9 +53,8 @@
 				//return osc(st,75,0.05,0);
 				//return mult(osc(rotate(st, 0.5, 0),100,0.05,0),shape(repeat(st, 20, 16, 0, 0),12,0.1,0),1);
 				//return shape(st,12,0.1,0.5);
-				float4 o0 = tex2D(_MainTex,rotate(st,-0.5,-0.5));
-				//o0 = tex2D(_MainTex,st);
-				return blend(color(osc(rotate(st,-0.5,-0.5),8,-0.5, 1),-1.5, -1.5, -1.5,1.0),o0,0.750);
+				float4 o0 = tex2D(_MainTex,rotate(st));
+				return blend(color(osc(rotate(st,-0.5,-0.5),8,-0.5, 1),-1.5, -1.5, -1.5,1.0),o0,0.65);
 			}
 
 			fixed4 frag (v2f i) : SV_TARGET
