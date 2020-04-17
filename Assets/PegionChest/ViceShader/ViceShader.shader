@@ -47,10 +47,9 @@
 			sampler2D _MainTex;
             float4 _MainTex_ST;
 
-			float4 vice(float3 cameraPos, float3 rayDir, float4 screenPos)
+			float4 vice(float3 cameraPos, float3 rayDir, float4 screenPos, float4 st)
 			{
 				float4 c = float4(1, 0, 0, 1);
-				float2 st = screenPos.xy/screenPos.w;
 				//return osc(st,75,0.05,0);
 				//return mult(osc(rotate(st, 0.5, 0),100,0.05,0),shape(repeat(st, 20, 16, 0, 0),12,0.1,0),1);
 				//return shape(st,12,0.1,0.5);
@@ -62,7 +61,8 @@
 			fixed4 frag (v2f i) : SV_TARGET
 			{
 				float3 rayDir = normalize(i.rayDir);
-				return vice(_WorldSpaceCameraPos,rayDir,i.pos);
+				float2 st = i.pos.xy/i.pos.w;
+				return vice(_WorldSpaceCameraPos,rayDir,i.pos,st);
 			}
 
 			ENDCG
