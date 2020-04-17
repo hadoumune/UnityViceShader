@@ -72,12 +72,12 @@ float _noise(float3 v){
 									dot(p2,x2), dot(p3,x3) ) );
 }
 
-float4 noise(float2 st, float scale, float offset){
+float4 noise(float2 st, float scale=10, float offset=0.1){
     float nz = _noise(float3(st.x*scale, st.y*scale, offset*_Time.y));
     return float4(nz,nz,nz,1.0);
 }
 
-float4 voronoi(float2 st, float scale, float speed, float blending) {
+float4 voronoi(float2 st, float scale=5, float speed=0.3, float blending=0.3) {
 	float3 color = (float3)(.0);
 
 	// Scale
@@ -112,28 +112,28 @@ float4 voronoi(float2 st, float scale, float speed, float blending) {
 	return float4(color, 1.0);
 }
 
-float4 osc(float2 _st, float freq, float sync, float offset){
+float4 osc(float2 _st, float freq=50.0, float sync=0.1, float offset=0){
 	float2 st = _st;
 	float r = sin((st.x-offset/freq+_Time.y*sync)*freq)*0.5  + 0.5;
 	float g = sin((st.x+_Time.y*sync)*freq)*0.5 + 0.5;
 	float b = sin((st.x+offset/freq+_Time.y*sync)*freq)*0.5  + 0.5;
 	return float4(r, g, b, 1.0);
 }
-		
-float4 shape(float2 _st, float sides, float radius, float smoothing){
+
+float4 shape(float2 _st, float sides=3, float radius=0.3, float smoothing=0.01){
 	float2 st = _st * 2. - 1.;
 	// Angle and radius from the current pixel
-	float a = atan2(st.x,st.y)+3.1416;
+	float a = atan2(st.x,-st.y)+3.1416;
 	float r = (2.*3.1416)/sides;
 	float d = cos(floor(.5+a/r)*r-a)*length(st);
     float s = 1.0-smoothstep(radius,radius + smoothing,d);
 	return float4(s,s,s, 1.0);
 }
 
-float4 edge(float2 _st, float sides, float radius,float width,float smoothing){
+float4 edge(float2 _st, float sides=4, float radius=0.5,float width=0.01,float smoothing=0.01){
 	float2 st = _st * 2. - 1.;
 	// Angle and radius from the current pixel
-	float a = atan2(st.x,st.y)+3.1416;
+	float a = atan2(st.x,-st.y)+3.1416;
 	float r = (2.*3.1416)/sides;
 	float d = cos(floor(.5+a/r)*r-a)*length(st);
     float s = 1.0-smoothstep(radius,radius + smoothing,d);
@@ -142,8 +142,9 @@ float4 edge(float2 _st, float sides, float radius,float width,float smoothing){
 	return float4(s,s,s, 1.0);
 }
 
-float4 gradient(float2 _st, float speed) {
-	return float4(_st, sin(_Time.y*speed), 1.0);
+float4 gradient(float2 _st, float speed=0) {
+	float2 st = float2(_st.x,1-_st.y);
+	return float4(st, sin(_Time.y*speed), 1.0);
 }
 
 float4 src(float2 _st, sampler2D _tex){
@@ -151,11 +152,11 @@ float4 src(float2 _st, sampler2D _tex){
 	return tex2D(_tex, frac(_st));
 }
 
-float4 solid(float2 uv, float _r, float _g, float _b, float _a){
+float4 solid(float2 uv, float _r=0, float _g=0, float _b=0, float _a=0){
 	return float4(_r, _g, _b, _a);
 }
 
-float2 rotate(float2 st, float _angle, float speed){
+float2 rotate(float2 st, float _angle=-0.707, float speed=0){
 	float2 xy = st - (float2)(0.5);
 	float angle = _angle + speed *_Time.y;
 	xy = mul(float2x2(cos(angle),-sin(angle), sin(angle),cos(angle)),xy);
@@ -163,19 +164,21 @@ float2 rotate(float2 st, float _angle, float speed){
 	return xy;
 }
 
-float2 scale(float2 st, float amount, float xMult, float yMult, float offsetX, float offsetY){
-	float2 xy = st - float2(offsetX, offsetY);
+float2 scale(float2 st, float amount=1.5, float xMult=1.0, float yMult=1.0,
+			 float offsetX = 0.5, float offsetY = 0.5)
+{
+	float2 xy = st - float2(offsetX, 1.-offsetY);
 	xy*=(1.0/float2(amount*xMult, amount*yMult));
-	xy+=float2(offsetX, offsetY);
+	xy+=float2(offsetX, 1.-offsetY);
 	return xy;
 }
 
-float2 pixelate(float2 st, float pixelX, float pixelY){
+float2 pixelate(float2 st, float pixelX=20, float pixelY=20){
 	float2 xy = float2(pixelX, pixelY);
 	return (floor(st * xy) + 0.5)/xy;
 }
 
-float4 posterize(float4 c, float bins, float gamma){
+float4 posterize(float4 c, float bins=3.0, float gamma=0.6){
 	float4 c2 = float4( pow(c.x, gamma), pow(c.y, gamma), pow(c.z, gamma), pow(c.w, gamma) );
     float4 bns = (float4)bins;
 	c2 *= bns;
@@ -186,7 +189,7 @@ float4 posterize(float4 c, float bins, float gamma){
 	return float4(c2.xyz, c.a);
 }
 
-float4 shift(float4 c, float r, float g, float b, float a){
+float4 shift(float4 c, float r=0.1, float g=0.1, float b=0.1, float a=0.0){
 	float4 c2 = float4(c);
 	c2.r = frac(c2.r + r);
 	c2.g = frac(c2.g + g);
@@ -195,45 +198,45 @@ float4 shift(float4 c, float r, float g, float b, float a){
 	return float4(c2.rgba);
 }
 
-float2 repeat(float2 _st, float repeatX, float repeatY, float offsetX, float offsetY){
+float2 repeat(float2 _st, float repeatX=3, float repeatY=3, float offsetX=0, float offsetY=0){
 	float2 st = _st * float2(repeatX, repeatY);
 	st.x += step(1., fmod(st.y,2.0)) * offsetX;
 	st.y += step(1., fmod(st.x,2.0)) * offsetY;
 	return frac(st);
 }
 
-float2 modulateRepeat(float2 _st, float4 c1, float repeatX, float repeatY, float offsetX, float offsetY){
+float2 modulateRepeat(float2 _st, float4 c1, float repeatX=3, float repeatY=3, float offsetX=0.5, float offsetY=0.5){
 	float2 st = _st * float2(repeatX, repeatY);
-	st.x += step(1., fmod(st.y,2.0)) + c1.r * offsetX;
+	st.x -= step(1., fmod(st.y,2.0)) + c1.r * offsetX;
 	st.y += step(1., fmod(st.x,2.0)) + c1.g * offsetY;
 	return frac(st);
 }
 
-float2 repeatX(float2 _st, float reps, float offset){
+float2 repeatX(float2 _st, float reps=3, float offset=0){
 	float2 st = _st * float2(reps, 1.0);
 	st.y += step(1., fmod(st.x,2.0))* offset;
 	return frac(st);
 }
 
-float2 modulateRepeatX(float2 _st, float4 c1, float reps, float offset){
+float2 modulateRepeatX(float2 _st, float4 c1, float reps=3, float offset=0.5){
 	float2 st = _st * float2(reps, 1.0);
-	st.y += step(1., fmod(st.x,2.0)) + c1.r * offset;
+	st.y -= step(1., fmod(st.x,2.0)) + c1.r * offset;
 	return frac(st);
 }
 
-float2 repeatY(float2 _st, float reps, float offset){
+float2 repeatY(float2 _st, float reps=3, float offset=0){
 	float2 st = _st * float2(1.0, reps);
 	st.x += step(1., fmod(st.y,2.0))* offset;
 	return frac(st);
 }
 
-float2 modulateRepeatY(float2 _st, float4 c1, float reps, float offset){
+float2 modulateRepeatY(float2 _st, float4 c1, float reps=3, float offset=0.5){
 	float2 st = _st * float2(reps, 1.0);
 	st.x += step(1., fmod(st.y,2.0)) + c1.r * offset;
 	return frac(st);
 }
 
-float2 kaleid(float2 st, float nSides){
+float2 kaleid(float2 st, float nSides=4){
 	st -= 0.5;
 	float r = length(st);
 	float a = atan2(st.x,st.y);
@@ -243,7 +246,7 @@ float2 kaleid(float2 st, float nSides){
 	return r*float2(-cos(a), sin(a));
 }
 
-float2 modulateKaleid(float2 st, float4 c1, float nSides){
+float2 modulateKaleid(float2 st, float4 c1, float nSides=4){
 	st -= 0.5;
 	float r = length(st);
 	float a = atan2(st.x, st.y);
@@ -253,27 +256,27 @@ float2 modulateKaleid(float2 st, float4 c1, float nSides){
 	return (c1.r+r)*float2(-cos(a), sin(a));
 }
 
-float2 scrollX(float2 st, float amount, float speed){
+float2 scrollX(float2 st, float amount=0.5, float speed=0){
 	st.x += amount + _Time.y*speed;
 	return frac(st);
 }
 
-float2 modulateScrollX(float2 st, float4 c1, float amount, float speed){
+float2 modulateScrollX(float2 st, float4 c1, float amount=0.5, float speed=0){
 	st.x += c1.r*amount + _Time.y*speed;
 	return frac(st);
 }
 
-float2 scrollY(float2 st, float amount, float speed){
+float2 scrollY(float2 st, float amount=0.5, float speed=0){
 	st.y += amount + _Time.y*speed;
 	return frac(st);
 }
 
-float2 modulateScrollY(float2 st, float4 c1, float amount, float speed){
+float2 modulateScrollY(float2 st, float4 c1, float amount=0.5, float speed=0){
 	st.y += c1.r*amount + _Time.y*speed;
 	return frac(st);
 }
 
-float4 add(float4 c0, float4 c1, float amount){
+float4 add(float4 c0, float4 c1, float amount=1){
 	return (c0+c1)*amount + c0*(1.0-amount);
 }
 
@@ -281,11 +284,11 @@ float4 layer(float4 c0, float4 c1){
 	return float4(lerp(c0.rgb, c1.rgb, c1.a), c0.a+c1.a);
 }
 
-float4 blend(float4 c0, float4 c1, float amount){
+float4 blend(float4 c0, float4 c1, float amount=0.5){
 	return c0*(1.0-amount)+c1*amount;
 }
 
-float4 mult(float4 c0, float4 c1, float amount){
+float4 mult(float4 c0, float4 c1, float amount=1){
 	return c0*(1.0-amount)+(c0*c1)*amount;
 }
 
@@ -293,24 +296,24 @@ float4 diff(float4 c0, float4 c1){
 	return float4(abs(c0.rgb-c1.rgb), max(c0.a, c1.a));
 }
 
-float2 modulate(float2 st, float4 c1, float amount){
+float2 modulate(float2 st, float4 c1, float amount=0.5){
 //  return frac(st+(c1.xy-0.5)*amount);
 	return st + c1.xy*amount;
 }
 
-float2 modulateScale(float2 st, float4 c1, float multiple, float offset){
+float2 modulateScale(float2 st, float4 c1, float multiple=1, float offset=1){
 	float2 xy = st - (float2)(0.5);
 	xy*=(1.0/float2(offset + multiple*c1.r, offset + multiple*c1.g));
 	xy+=(float2)(0.5);
 	return xy;
 }
 
-float2 modulatePixelate(float2 st, float4 c1, float multiple, float offset){
+float2 modulatePixelate(float2 st, float4 c1, float multiple=10, float offset=3){
 	float2 xy = float2(offset + c1.x*multiple, offset + c1.y*multiple);
 	return (floor(st * xy) + 0.5)/xy;
 }
 
-float2 modulateRotate(float2 st, float4 c1, float multiple, float offset){
+float2 modulateRotate(float2 st, float4 c1, float multiple=1, float offset=0){
 	float2 xy = st - (float2)(0.5);
 	float angle = offset + c1.x * multiple;
 	xy = mul(float2x2(cos(angle),-sin(angle), sin(angle),cos(angle)),xy);
@@ -318,20 +321,20 @@ float2 modulateRotate(float2 st, float4 c1, float multiple, float offset){
 	return xy;
 }
 
-float2 modulateHue(float2 st, float4 c1, float amount){
-	return st + (float2(c1.g - c1.r, c1.b - c1.g) * amount * 1.0/_ScreenParams.xy);
+float2 modulateHue(float2 st, float4 c1, float amount=1){
+	return st + (float2(c1.g - c1.r, c1.b - c1.g) * amount * 0.5/_ScreenParams.xy);
 }
 
-float4 invert(float4 c0, float amount){
+float4 invert(float4 c0, float amount=1){
 	return float4((1.0-c0.rgb)*amount + c0.rgb*(1.0-amount), c0.a);
 }
 
-float4 contrast(float4 c0, float amount) {
+float4 contrast(float4 c0, float amount=1.5) {
 	float4 c = (c0-(float4)(0.5))*(float4)(amount) + (float4)(0.5);
 	return float4(c.rgb, c0.a);
 }
 
-float4 brightness(float4 c0, float amount){
+float4 brightness(float4 c0, float amount=0.4){
 	return float4(c0.rgb + (float3)(amount), c0.a);
 }
 
@@ -345,17 +348,17 @@ float4 mask(float4 c0, float4 c1){
 	return float4(c0.rgb*a, a);
 }
 
-float4 luma(float4 c0, float threshold, float tolerance){
+float4 luma(float4 c0, float threshold=0.5, float tolerance=0.1){
 	float a = smoothstep(threshold-tolerance, threshold+tolerance, luminance(c0.rgb));
 	return float4(c0.rgb*a, a);
 }
 
-float4 thresh(float4 c0, float threshold, float tolerance){
+float4 thresh(float4 c0, float threshold=0.5, float tolerance=0.04){
     float stp = smoothstep(threshold-tolerance, threshold+tolerance, luminance(c0.rgb));
 	return float4(stp,stp,stp, c0.a);
 }
 
-float4 color(float4 c0, float _r, float _g, float _b, float _a){
+float4 color(float4 c0, float _r=1, float _g=1, float _b=1, float _a=1){
 	float4 c = float4(_r, _g, _b, _a);
 	float4 pos = step(0.0, c); // detect whether negative
 
@@ -380,20 +383,20 @@ float3 _hsvToRgb(float3 c){
 	return c.z * lerp(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
 
-float4 saturate(float4 c0, float amount){
+float4 saturate(float4 c0, float amount=2){
 	const float3 W = float3(0.2125, 0.7154, 0.0721);
 	float3 intensity = (float3)(dot(c0.rgb, W));
 	return float4(lerp(intensity, c0.rgb, amount), c0.a);
 }
 
-float4 hue(float4 c0, float hue){
+float4 hue(float4 c0, float hue=0.4){
 	float3 c = _rgbToHsv(c0.rgb);
 	c.r += hue;
 	//  c.r = frac(c.r);
 	return float4(_hsvToRgb(c), c0.a);
 }
 
-float4 colorama(float4 c0, float amount){
+float4 colorama(float4 c0, float amount=0.005){
 	float3 c = _rgbToHsv(c0.rgb);
 	c += (float3)(amount);
 	c = _hsvToRgb(c);
